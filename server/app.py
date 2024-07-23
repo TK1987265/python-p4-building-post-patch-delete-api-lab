@@ -30,6 +30,44 @@ def bakery_by_id(id):
     bakery_serialized = bakery.to_dict()
     return make_response ( bakery_serialized, 200  )
 
+@app.route('/baked_goods', methods=[ 'POST'])
+def baked_goods():
+    if request.method == 'POST':
+        new_baked_goods = BakedGood(
+            name=request.form.get("name"),
+            price=request.form.get("price"),
+            bakery_id=request.form.get("bakery_id"),
+            
+        )
+        db.session.add(new_baked_goods)
+        db.session.commit()
+
+        new_baked_goods_dict = new_baked_goods.to_dict()
+
+        response = make_response(
+            new_baked_goods_dict,
+            201
+        )
+
+        return response
+
+
+@app.route("/bakeries/<int:id>", methods=["PATCH"])
+def update_bakery(id):
+    data = request.form
+    bakery = Bakery.query.get_or_404(id)
+    bakery.name = data.get('name')
+    db.session.commit()
+    return jsonify({"id": bakery.id, "name": bakery.name}), 200
+
+@app.route("/baked_goods/<int:id>", methods=["DELETE"])
+def delete_baked_good(id):
+    baked_good = BakedGood.query.get_or_404(id)
+    db.session.delete(baked_good)
+    db.session.commit()
+    return jsonify({"message": "Baked good deleted"}), 200
+
+
 @app.route('/baked_goods/by_price')
 def baked_goods_by_price():
     baked_goods_by_price = BakedGood.query.order_by(BakedGood.price.desc()).all()
